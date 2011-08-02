@@ -1,0 +1,21 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=3680
+
+This plugin keeps track of the tabs you were working in recently, so that you may switch back to them easily.
+
+If you used to working in a lot of tabs, then this plugin can make a lot of difference.
+
+screenshot : http://i55.tinypic.com/x1g1l5.png 
+
+Command to open the recently worked tab list is
+
+ :Tablisttoggle
+
+
+Invoking this plugin opens a new horizontal window above the currently window.
+This window will contain a list of tabs(that are still open and you have accessed previously).
+The tabs are sorted on order in which you accessed. 
+Top line shows the last tab you were on. The previous tab below it and so on.
+
+To switch to a tab in the list, double click on the line or press enter when you are on the corresponding line. 
+
+When a tab is closed, that tab is removed from the list. The tablist window closes automatically when it loses focus.
