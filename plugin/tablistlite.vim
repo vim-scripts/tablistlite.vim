@@ -1,5 +1,5 @@
-" Tabtracker plugin v1.0
-" Last Change:	2011 july
+" Tabtracker plugin v1.2
+" Last Change:	2011 Aug
 " Maintainer:	Sandeep.c.r<sandeepcr2@gmail.com>
 "
 "
@@ -79,15 +79,28 @@ endfunction
 function! s:display_tab_list(tab_list)
 	let b:lookup = {}
 	let l:line = 1
-	for l:i in s:tlstrecent
-	if(exists("l:tabdetails")) 
-		unlet l:tabdetails
+	let l:thisbuffer = s:getbuffortab()
+	if(index(s:tlstrecent,l:thisbuffer)==-1)
+		call add(s:tlstrecent,l:thisbuffer)
 	endif
+	for l:i in s:tlstrecent
+		if(exists("l:tabdetails")) 
+			unlet l:tabdetails
+		endif
 		if(has_key(a:tab_list,l:i))
 			let l:tabdetails = get(a:tab_list,l:i)
 			"let l:parts = split(l:tabdetails[1],'[\/]')
 			let l:short_file_name = pathshorten(l:tabdetails[1])
 			call setline(l:line,l:short_file_name)
+			if(l:i==l:thisbuffer)
+				let l:fg = synIDattr(hlID('Statement'),'fg','gui')
+				let l:bg = synIDattr(hlID('CursorLine'),'bg','gui')
+				if(l:fg!='' && l:bg!='')
+					exe 'highlight currenttab guibg='.l:bg
+					exe 'highlight currenttab guifg='.l:fg
+					exe 'match currenttab /\%'.l:line.'l.\%>1c/'
+				endif
+			endif
 			let b:lookup[l:short_file_name] = l:tabdetails[0]
 			let l:line += 1
 		endif
@@ -109,16 +122,28 @@ function! s:close()
 	endif
 endfunction
 
+function! s:place_sign()
+	setlocal cursorline
+	return
+	exec "sign unplace *"
+	exec "sign define lineh linehl=Search texthl=Search" 
+	exec "sign place 10 name=lineh line=".line('.')." buffer=" . t:tlistbuf
+endfunction
+
 
 function! s:toggle()
 	if(exists("t:tlistbuf"))
 		call s:close()
 		return 0
 	endif
+	if(len(s:tlstrecent)==0) 
+		call s:populaterecent()
+	endif
 	let s:tablist = s:get_tab_ls()
 	let t:tlistbuf = s:open_new_window(20)
+	setlocal cursorline
 	call s:display_tab_list(s:tablist)
-	call matchadd('Keyword','[\/\\][^\/\\]*$')  
+	"call matchadd('String','[\/\\][^\/\\]*$')  
 	setlocal nomodifiable
 	map <buffer> <silent> <2-leftrelease> :call <sid>gototab()<cr>
 	map <buffer> <silent> <C-R> :call <sid>gototab()<cr>
@@ -132,14 +157,18 @@ endfunction
 
 function! s:gototab()
 	let l:llindex= getline('.')
-	let l:tabno = b:lookup[l:llindex]
-	"echo l:tabno
-	call s:switch_tab(l:tabno)
+	if(has_key(b:lookup,l:llindex))
+		let l:tabno = b:lookup[l:llindex]
+		call s:switch_tab(l:tabno)
+	else
+		call s:close()
+	endif
 endfunction
 
 
 function! s:switch_tab(tabno)
 	exe a:tabno. ' tabn'
+	call s:close()
 endfunction
 
 
@@ -168,6 +197,27 @@ function! s:updaterecent()
 			endif
 		endif
 	endfor
+endfunction
+
+
+function! s:getbuffortab()
+	let l:thistab = tabpagenr()
+	let l:buf_list_for_this_tab = tabpagebuflist(l:thistab)
+	for l:j in l:buf_list_for_this_tab 
+		let l:bufname = bufname(l:j)
+		if(strlen(l:bufname) > 0 && getbufvar(l:j,'&modifiable')) 
+			return l:j
+		endif
+	endfor
+endfunction
+function! s:populaterecent()
+let l:tablist = s:get_tab_ls()
+for l:x in keys(l:tablist)
+	let l:bufname = bufname(str2nr(l:x))
+	if(strlen(l:bufname) > 0 && getbufvar(str2nr(l:x),'&modifiable')) 
+		call insert(s:tlstrecent,str2nr(l:x))
+	endif
+endfor
 endfunction
 
 let s:tlstrecent = []

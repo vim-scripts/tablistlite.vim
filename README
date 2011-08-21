@@ -1,8 +1,8 @@
 This is a mirror of http://www.vim.org/scripts/script.php?script_id=3680
 
-This plugin keeps track of the tabs you were working in recently, so that you may switch back to them easily.
+This plugin makes it very easy to switch tabs. This keeps track of the tabs you were working in recently, so that you may switch back to them very easily. All the tab switching can be done using keyboard only
 
-If you used to working in a lot of tabs, then this plugin can make a lot of difference.
+So if  you used to working in a lot of tabs, then this plugin can make a lot of difference.
 
 screenshot : http://i55.tinypic.com/x1g1l5.png 
 
