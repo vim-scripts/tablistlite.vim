@@ -48,7 +48,7 @@ function! s:get_tab_ls()
 		for l:j in l:buf_list_for_this_tab 
 			let l:bufname = bufname(l:j)
 			if(strlen(l:bufname) > 0) 
-				let l:tabs[l:j] = [l:i+1,l:bufname]
+				let l:tabs[l:j] = [l:i+1,l:bufname,l:j]
 			endif
 		endfor
 	endfor
@@ -91,6 +91,9 @@ function! s:display_tab_list(tab_list)
 			let l:tabdetails = get(a:tab_list,l:i)
 			"let l:parts = split(l:tabdetails[1],'[\/]')
 			let l:short_file_name = pathshorten(l:tabdetails[1])
+			if(getbufvar(str2nr(l:tabdetails[2]),'&modified')) 
+				let l:short_file_name = l:short_file_name." (+)"
+			endif
 			call setline(l:line,l:short_file_name)
 			if(l:i==l:thisbuffer)
 				let l:fg = synIDattr(hlID('Statement'),'fg','gui')
@@ -140,7 +143,7 @@ function! s:toggle()
 		call s:populaterecent()
 	endif
 	let s:tablist = s:get_tab_ls()
-	let t:tlistbuf = s:open_new_window(20)
+	let t:tlistbuf = s:open_new_window(40)
 	setlocal cursorline
 	call s:display_tab_list(s:tablist)
 	"call matchadd('String','[\/\\][^\/\\]*$')  
@@ -149,6 +152,7 @@ function! s:toggle()
 	map <buffer> <silent> <C-R> :call <sid>gototab()<cr>
 	map <buffer> <silent> <C-M> :call <sid>gototab()<cr>
 	map <buffer> <silent> r :call <sid>refresh()<cr>
+	map <buffer> <silent> <Esc> :call <sid>close()<cr>
 	augroup  Tlistaco1
 			autocmd!
 			au  BufLeave <buffer> call <sid>close()
@@ -192,9 +196,6 @@ function! s:updaterecent()
 		if(strlen(l:bufname) > 0 && getbufvar(l:j,'&modifiable')) 
 			call filter(s:tlstrecent, 'v:val !='. l:j)
 			call insert(s:tlstrecent,l:j)
-			if(len(s:tlstrecent) > 30) 
-				call remove(s:tlstrecent,30,-1)
-			endif
 		endif
 	endfor
 endfunction
